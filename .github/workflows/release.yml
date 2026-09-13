@@ -1,0 +1,41 @@
+name: release
+on:
+  push:
+    branches: [main]
+    paths: [RELEASE_VERSION]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer validate --strict
+      - run: find src tests examples -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: composer test
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(tr -d '[:space:]' < RELEASE_VERSION)"
+          test -n "$VERSION" || { echo 'RELEASE_VERSION is empty'; exit 1; }
+          TAG="$VERSION"
+          case "$TAG" in v*) ;; *) TAG="v$TAG" ;; esac
+          cat > RELEASE_NOTES.md <<'EOF'
+          First stable release of Vendo Gateway.
+
+          Highlights:
+          - secure device pairing and HMAC authentication
+          - retry-safe credential delivery with explicit pairing ACK
+          - remote configuration and reusable device profiles
+          - desired/reported state and generic command queue
+          - idempotent sequenced device events
+          - firmware/OTA metadata and channels
+          - device lifecycle controls and database migrations
+          - framework-neutral HTTP endpoint adapters
+          EOF
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Vendo Gateway $TAG" --notes-file RELEASE_NOTES.md
