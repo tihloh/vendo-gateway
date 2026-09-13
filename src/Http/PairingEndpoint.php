@@ -18,4 +18,9 @@ final class PairingEndpoint
     {
         return $this->pairings->status($pairingId, $pairingToken);
     }
+
+    public function acknowledge(string $pairingId, string $pairingToken): array
+    {
+        return $this->pairings->acknowledge($pairingId, $pairingToken);
+    }
 }
