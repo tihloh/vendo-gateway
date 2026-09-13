@@ -1,0 +1,21 @@
+{
+  "name": "tihloh/vendo-gateway",
+  "description": "Reusable device gateway for coin-operated and vending hardware.",
+  "type": "library",
+  "license": "MIT",
+  "version": "0.1.0",
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tihloh\\VendoGateway\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tihloh\\VendoGateway\\Tests\\": "tests/"
+    }
+  }
+}
