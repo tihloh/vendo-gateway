@@ -4,11 +4,11 @@
   "type": "library",
   "license": "MIT",
   "keywords": ["vendo", "vending", "iot", "esp32", "esp8266", "gateway"],
-  "homepage": "https://github.com/tihloh/vendogate-php",
+  "homepage": "https://github.com/tihloh/vendo-gateway",
   "authors": [{"name": "Christian Bustamante"}],
   "support": {
-    "issues": "https://github.com/tihloh/vendogate-php/issues",
-    "source": "https://github.com/tihloh/vendogate-php"
+    "issues": "https://github.com/tihloh/vendo-gateway/issues",
+    "source": "https://github.com/tihloh/vendo-gateway"
   },
   "require": {
     "php": ">=8.2",
