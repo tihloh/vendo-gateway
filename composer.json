@@ -1,15 +1,11 @@
 {
   "name": "tihloh/vendo-gateway",
-  "description": "Reusable device gateway for coin-operated and vending hardware.",
+  "description": "Reusable device gateway for coin-operated, vending and IoT hardware.",
   "type": "library",
   "license": "MIT",
   "keywords": ["vendo", "vending", "iot", "esp32", "esp8266", "gateway"],
   "homepage": "https://github.com/tihloh/vendogate-php",
-  "authors": [
-    {
-      "name": "Christian Bustamante"
-    }
-  ],
+  "authors": [{"name": "Christian Bustamante"}],
   "support": {
     "issues": "https://github.com/tihloh/vendogate-php/issues",
     "source": "https://github.com/tihloh/vendogate-php"
@@ -19,14 +15,16 @@
     "ext-openssl": "*",
     "ext-pdo": "*"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0"
+  },
   "autoload": {
-    "psr-4": {
-      "Tihloh\\VendoGateway\\": "src/"
-    }
+    "psr-4": {"Tihloh\\VendoGateway\\": "src/"}
   },
   "autoload-dev": {
-    "psr-4": {
-      "Tihloh\\VendoGateway\\Tests\\": "tests/"
-    }
+    "psr-4": {"Tihloh\\VendoGateway\\Tests\\": "tests/"}
+  },
+  "scripts": {
+    "test": "phpunit tests"
   }
 }

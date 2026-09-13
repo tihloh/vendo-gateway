@@ -1,0 +1,16 @@
+<?php
+declare(strict_types=1);
+namespace Tihloh\VendoGateway\Config;
+use PDO;
+final class PdoConfigRepository implements ConfigRepository
+{
+    public function __construct(private PDO $pdo) {}
+    public function profile(string $profileKey): ?array{$stmt=$this->pdo->prepare('SELECT * FROM vg_device_profiles WHERE profile_key=? LIMIT 1');$stmt->execute([$profileKey]);$r=$stmt->fetch(PDO::FETCH_ASSOC);if(!$r)return null;$r['config']=json_decode($r['config_json']?:'{}',true)?:[];$r['required_capabilities']=json_decode($r['required_capabilities_json']?:'{}',true)?:[];return $r;}
+    public function upsertProfile(string $profileKey,string $name,array $config,array $requiredCapabilities,string $firmwareChannel,\DateTimeImmutable $at): int
+    {
+        $existing=$this->profile($profileKey);$version=(int)($existing['config_version']??0)+1;$date=$at->format('Y-m-d H:i:s');$stmt=$this->pdo->prepare('INSERT INTO vg_device_profiles (profile_key,name,config_json,required_capabilities_json,firmware_channel,config_version,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),config_json=VALUES(config_json),required_capabilities_json=VALUES(required_capabilities_json),firmware_channel=VALUES(firmware_channel),config_version=VALUES(config_version),updated_at=VALUES(updated_at)');$stmt->execute([$profileKey,$name,json_encode($config,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),json_encode($requiredCapabilities,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$firmwareChannel,$version,$existing['created_at']??$date,$date]);return $version;
+    }
+    public function device(string $deviceId): ?array{$stmt=$this->pdo->prepare('SELECT d.device_id,d.profile_key,d.config_version,d.desired_state_json,d.reported_state_json,c.config_json FROM vg_devices d LEFT JOIN vg_device_configs c ON c.device_id=d.device_id AND c.config_version=d.config_version WHERE d.device_id=? LIMIT 1');$stmt->execute([$deviceId]);$r=$stmt->fetch(PDO::FETCH_ASSOC);if(!$r)return null;$r['config']=json_decode($r['config_json']?:'{}',true)?:[];$r['desired_state']=json_decode($r['desired_state_json']?:'{}',true)?:[];$r['reported_state']=json_decode($r['reported_state_json']?:'{}',true)?:[];return $r;}
+    public function assignProfile(string $deviceId,?string $profileKey): void{$this->pdo->prepare('UPDATE vg_devices SET profile_key=?,updated_at=UTC_TIMESTAMP() WHERE device_id=?')->execute([$profileKey,$deviceId]);}
+    public function saveDeviceConfig(string $deviceId,array $config,\DateTimeImmutable $at): int{$this->pdo->beginTransaction();try{$s=$this->pdo->prepare('SELECT config_version FROM vg_devices WHERE device_id=? FOR UPDATE');$s->execute([$deviceId]);$version=(int)$s->fetchColumn()+1;$date=$at->format('Y-m-d H:i:s');$this->pdo->prepare('INSERT INTO vg_device_configs (device_id,config_version,config_json,created_at) VALUES (?,?,?,?)')->execute([$deviceId,$version,json_encode($config,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$date]);$this->pdo->prepare('UPDATE vg_devices SET config_version=?,updated_at=? WHERE device_id=?')->execute([$version,$date,$deviceId]);$this->pdo->commit();return $version;}catch(\Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}}
+}
