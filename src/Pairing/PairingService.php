@@ -20,6 +20,10 @@ final class PairingService
     }
     public function status(string $pairingId,string $pairingToken): array
     {
-        $row=$this->pairings->findByToken($pairingId,$pairingToken);if(!$row)throw new \RuntimeException('Invalid pairing credentials.');$now=$this->clock->now();$expires=new \DateTimeImmutable($row['expires_at'],new \DateTimeZone('UTC'));if($expires<=$now&&$row['status']==='pending')return ['status'=>'expired'];if($row['status']!=='completed')return ['status'=>$row['status']];if(!$row['issued_device_secret_encrypted'])return ['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true];$secret=$this->protector->decrypt($row['issued_device_secret_encrypted']);$this->pairings->markDelivered($pairingId,$now);return ['status'=>'registered','device_id'=>$row['device_id'],'device_secret'=>$secret,'credentials_delivered'=>false];
+        $row=$this->pairings->findByToken($pairingId,$pairingToken);if(!$row)throw new \RuntimeException('Invalid pairing credentials.');$now=$this->clock->now();$expires=new \DateTimeImmutable($row['expires_at'],new \DateTimeZone('UTC'));if($expires<=$now&&$row['status']==='pending')return ['status'=>'expired'];if($row['status']!=='completed')return ['status'=>$row['status']];if(!$row['issued_device_secret_encrypted'])return ['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true];$secret=$this->protector->decrypt($row['issued_device_secret_encrypted']);return ['status'=>'registered','device_id'=>$row['device_id'],'device_secret'=>$secret,'credentials_delivered'=>false,'ack_required'=>true];
+    }
+    public function acknowledge(string $pairingId,string $pairingToken): array
+    {
+        $row=$this->pairings->findByToken($pairingId,$pairingToken);if(!$row)throw new \RuntimeException('Invalid pairing credentials.');if($row['status']!=='completed')throw new \RuntimeException('Pairing is not completed.');if(!$row['issued_device_secret_encrypted'])return ['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true];$this->pairings->markDelivered($pairingId,$this->clock->now());return ['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true];
     }
 }
