@@ -1,35 +1,33 @@
 <?php
 declare(strict_types=1);
 
-use Tihloh\VendoGateway\Auth\DeviceAuthenticator;
-use Tihloh\VendoGateway\Auth\PdoNonceRepository;
-use Tihloh\VendoGateway\Device\PdoDeviceRepository;
-use Tihloh\VendoGateway\Heartbeat\HeartbeatService;
-use Tihloh\VendoGateway\Http\HeartbeatEndpoint;
+use Tihloh\VendoGateway\Database\Migrator;
+use Tihloh\VendoGateway\GatewayFactory;
+use Tihloh\VendoGateway\Http\CommandEndpoint;
+use Tihloh\VendoGateway\Http\ConfigEndpoint;
+use Tihloh\VendoGateway\Http\DeviceAuth;
+use Tihloh\VendoGateway\Http\DiscoveryEndpoint;
+use Tihloh\VendoGateway\Http\EventEndpoint;
+use Tihloh\VendoGateway\Http\FirmwareEndpoint;
 use Tihloh\VendoGateway\Http\PairingEndpoint;
-use Tihloh\VendoGateway\Pairing\PairingService;
-use Tihloh\VendoGateway\Pairing\PdoPairingRepository;
-use Tihloh\VendoGateway\Security\OpenSslSecretProtector;
-use Tihloh\VendoGateway\Support\SystemClock;
+use Tihloh\VendoGateway\Http\StateEndpoint;
+use Tihloh\VendoGateway\Http\SyncEndpoint;
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-$pdo = new PDO(
-    getenv('DB_DSN'),
-    getenv('DB_USER'),
-    getenv('DB_PASS'),
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-);
+$pdo=new PDO(getenv('DB_DSN'),getenv('DB_USER'),getenv('DB_PASS'),[
+    PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION
+]);
+$masterKey=(string)getenv('VENDO_GATEWAY_MASTER_KEY');
+(new Migrator($pdo))->migrate();
+$gateway=GatewayFactory::pdo($pdo,$masterKey);
+$deviceAuth=new DeviceAuth(GatewayFactory::authenticator($pdo,$masterKey));
 
-$clock = new SystemClock();
-$protector = new OpenSslSecretProtector(getenv('VENDO_GATEWAY_MASTER_KEY'));
-$devices = new PdoDeviceRepository($pdo, $protector);
-$pairings = new PdoPairingRepository($pdo);
-$nonces = new PdoNonceRepository($pdo);
-
-$pairingService = new PairingService($pairings, $devices, $protector, $clock);
-$auth = new DeviceAuthenticator($devices, $nonces, $clock);
-$heartbeatService = new HeartbeatService($devices, $clock);
-
-$pairingEndpoint = new PairingEndpoint($pairingService);
-$heartbeatEndpoint = new HeartbeatEndpoint($auth, $heartbeatService);
+$discoveryEndpoint=new DiscoveryEndpoint();
+$pairingEndpoint=new PairingEndpoint($gateway->pairings);
+$syncEndpoint=new SyncEndpoint($deviceAuth,$gateway->configs,$gateway->commands,$gateway->states,$gateway->firmware);
+$eventEndpoint=new EventEndpoint($deviceAuth,$gateway->events);
+$commandEndpoint=new CommandEndpoint($deviceAuth,$gateway->commands);
+$configEndpoint=new ConfigEndpoint($deviceAuth,$gateway->configs);
+$stateEndpoint=new StateEndpoint($deviceAuth,$gateway->states);
+$firmwareEndpoint=new FirmwareEndpoint($deviceAuth,$gateway->firmware);
