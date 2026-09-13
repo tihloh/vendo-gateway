@@ -20,7 +20,9 @@ Base path: `/vendo/v1`. Production deployments must use HTTPS.
 }
 ```
 
-The gateway returns a long private `pairing_token` for the device and a short `pairing_code` for the administrator. The host application claims the short code. The device polls pairing status with its private token and receives `device_id` and `device_secret` once.
+The gateway returns a long private `pairing_token` for the device and a short `pairing_code` for the administrator. The host application claims the short code. The device polls pairing status with its private token.
+
+After claim, pairing status returns `device_id` and `device_secret`. Credential delivery is retry-safe: the server continues returning the credentials until the device has persisted them and explicitly acknowledges delivery using `POST /pairings/{id}/ack` with the private pairing token. Only after that acknowledgement does the server clear the encrypted one-time device secret from the pairing record.
 
 A non-revoked `hardware_uid` cannot silently register as another device. Re-pairing requires an explicit administrative recovery/revocation flow.
 
