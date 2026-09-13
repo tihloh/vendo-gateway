@@ -93,6 +93,7 @@ Recommended device routes:
 GET  /vendo/v1/discover
 POST /vendo/v1/pairings
 GET  /vendo/v1/pairings/{id}
+POST /vendo/v1/pairings/{id}/ack
 POST /vendo/v1/heartbeat
 POST /vendo/v1/sync
 POST /vendo/v1/events
@@ -104,6 +105,8 @@ POST /vendo/v1/firmware/check
 ```
 
 The package provides framework-neutral endpoint classes under `Tihloh\VendoGateway\Http`; your application maps them to its router.
+
+Pairing credential delivery is retry-safe: after an administrator claims a pairing, the device may retrieve `device_id` and `device_secret` repeatedly until it has persisted them and explicitly acknowledges delivery. The server clears the encrypted one-time secret only after `POST /pairings/{id}/ack` succeeds.
 
 Authenticated requests use:
 
