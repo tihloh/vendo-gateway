@@ -25,6 +25,6 @@
     "psr-4": {"Tihloh\\VendoGateway\\Tests\\": "tests/"}
   },
   "scripts": {
-    "test": "phpunit"
+    "test": "phpunit tests"
   }
 }
