@@ -3,9 +3,20 @@
   "description": "Reusable device gateway for coin-operated and vending hardware.",
   "type": "library",
   "license": "MIT",
-  "version": "0.1.0",
+  "keywords": ["vendo", "vending", "iot", "esp32", "esp8266", "gateway"],
+  "homepage": "https://github.com/tihloh/vendogate-php",
+  "authors": [
+    {
+      "name": "Christian Bustamante"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/tihloh/vendogate-php/issues",
+    "source": "https://github.com/tihloh/vendogate-php"
+  },
   "require": {
     "php": ">=8.2",
+    "ext-openssl": "*",
     "ext-pdo": "*"
   },
   "autoload": {
