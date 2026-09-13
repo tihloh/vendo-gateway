@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2026-09-14
 
-Complete generic gateway implementation:
+First stable release of the generic Vendo Gateway package:
 
-- remote config and profiles
+- device pairing and admin claim
+- retry-safe permanent credential delivery with explicit device ACK
+- HMAC-SHA256 device authentication
+- timestamp and nonce replay protection
+- heartbeat and capabilities
+- encrypted device-secret storage
+- remote config and reusable device profiles
 - desired/reported state
 - command queue, retries, ACK/failure and expiry
 - idempotent sequenced events with replayable host processing
