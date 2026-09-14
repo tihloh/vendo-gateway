@@ -26,16 +26,14 @@ jobs:
           TAG="$VERSION"
           case "$TAG" in v*) ;; *) TAG="v$TAG" ;; esac
           cat > RELEASE_NOTES.md <<'EOF'
-          First stable release of Vendo Gateway.
+          Vendo Gateway firmware management update.
 
           Highlights:
-          - secure device pairing and HMAC authentication
-          - retry-safe credential delivery with explicit pairing ACK
-          - remote configuration and reusable device profiles
-          - desired/reported state and generic command queue
-          - idempotent sequenced device events
-          - firmware/OTA metadata and channels
-          - device lifecycle controls and database migrations
-          - framework-neutral HTTP endpoint adapters
+          - public firmware release-manifest discovery belongs to Vendo Gateway, not PixiePoint
+          - current-versus-latest device firmware status
+          - firmware.check and firmware.update command helpers
+          - 1 to 24 hour OTA policy validation with a 2 hour default
+          - device sync no longer pushes firmware binaries or release metadata automatically
+          - ESP firmware remains responsible for autonomous discovery, verification and installation
           EOF
           gh release create "$TAG" --target "$GITHUB_SHA" --title "Vendo Gateway $TAG" --notes-file RELEASE_NOTES.md
