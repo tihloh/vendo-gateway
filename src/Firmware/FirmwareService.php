@@ -33,7 +33,7 @@ final class FirmwareService
     }
     public function normalizeSettings(array $settings): array
     {
-        $hours=(int)($settings['check_interval_hours']??2);if($hours<1||$hours>24)throw new \InvalidArgumentException('Firmware check interval must be between 1 and 24 hours.');$channel=(string)($settings['channel']??'stable');if($channel!=='stable')throw new \InvalidArgumentException('Unsupported firmware channel.');return ['auto_check'=>(bool)($settings['auto_check']??true),'check_interval_hours'=>$hours,'auto_update'=>(bool)($settings['auto_update']??true),'channel'=>$channel];
+        $hours=(int)($settings['check_interval_hours']??2);if($hours<1||$hours>24)throw new \InvalidArgumentException('Firmware check interval must be between 1 and 24 hours.');$channel=(string)($settings['channel']??'stable');if($channel!=='stable')throw new \InvalidArgumentException('Unsupported firmware channel.');return ['auto_check'=>(bool)($settings['auto_check']??true),'check_interval_hours'=>$hours,'auto_update'=>(bool)($settings['auto_update']??false),'channel'=>$channel];
     }
     private function target(string $target): string{$target=strtolower(trim($target));if(!in_array($target,['esp8266','esp32'],true))throw new \InvalidArgumentException('Unsupported firmware target.');return $target;}
 }
