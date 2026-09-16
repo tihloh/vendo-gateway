@@ -17,23 +17,16 @@ final class FirmwareService
     {
         $latest=$this->firmware->latest($model,$revision,$channel);if(!$latest||version_compare($latest['version'],$currentVersion,'<='))return ['update_available'=>false];return ['update_available'=>true,'firmware'=>$latest];
     }
-    public function releaseStatus(string $currentVersion,string $target): array{return $this->releases->status($currentVersion,$this->target($target));}
-    public function latestRelease(?string $target=null): ?array{return $this->releases->latest($target===null?null:$this->target($target));}
-    public function deviceStatus(string $deviceId): array
+    public function releaseStatus(string $currentVersion,string $target,bool $refresh=false): array{return $this->releases->status($currentVersion,$this->target($target),$refresh);}
+    public function latestRelease(?string $target=null,bool $refresh=false): ?array{return $this->releases->latest($target===null?null:$this->target($target),$refresh);}
+    public function deviceStatus(string $deviceId,bool $refresh=false): array
     {
-        if(!$this->devices)throw new \RuntimeException('Device repository is not available.');$device=$this->devices->find($deviceId);if(!$device)throw new \InvalidArgumentException('Device not found.');$caps=$this->devices->capabilities($deviceId);$target=(string)($caps['platform']??'');if($target==='')return ['device_id'=>$deviceId,'current_version'=>$device->firmwareVersion,'latest_version'=>null,'update_available'=>null,'target'=>null];return ['device_id'=>$deviceId]+$this->releaseStatus((string)($device->firmwareVersion??'0.0.0'),$target);
+        if(!$this->devices)throw new \RuntimeException('Device repository is not available.');$device=$this->devices->find($deviceId);if(!$device)throw new \InvalidArgumentException('Device not found.');$caps=$this->devices->capabilities($deviceId);$target=(string)($caps['platform']??'');if($target==='')return ['device_id'=>$deviceId,'current_version'=>$device->firmwareVersion,'latest_version'=>null,'update_available'=>null,'target'=>null];return ['device_id'=>$deviceId]+$this->releaseStatus((string)($device->firmwareVersion??'0.0.0'),$target,$refresh);
     }
-    public function requestCheck(string $deviceId): string
-    {
-        if(!$this->commands)throw new \RuntimeException('Command service is not available.');return $this->commands->queue($deviceId,'firmware.check',[],300);
-    }
+    public function requestCheck(string $deviceId): array{return $this->deviceStatus($deviceId,true);}
     public function requestUpdate(string $deviceId): string
     {
-        if(!$this->commands)throw new \RuntimeException('Command service is not available.');return $this->commands->queue($deviceId,'firmware.update',[],600);
-    }
-    public function normalizeSettings(array $settings): array
-    {
-        $hours=(int)($settings['check_interval_hours']??2);if($hours<1||$hours>24)throw new \InvalidArgumentException('Firmware check interval must be between 1 and 24 hours.');$channel=(string)($settings['channel']??'stable');if($channel!=='stable')throw new \InvalidArgumentException('Unsupported firmware channel.');return ['auto_check'=>(bool)($settings['auto_check']??true),'check_interval_hours'=>$hours,'auto_update'=>(bool)($settings['auto_update']??false),'channel'=>$channel];
+        if(!$this->commands)throw new \RuntimeException('Command service is not available.');$status=$this->deviceStatus($deviceId,true);if(($status['update_available']??null)!==true)throw new \RuntimeException(($status['latest_version']??null)===null?'Latest firmware version is unavailable.':'Device is already up to date.');return $this->commands->queue($deviceId,'firmware.update',['version'=>$status['latest_version'],'channel'=>$status['channel']??'stable'],600);
     }
     private function target(string $target): string{$target=strtolower(trim($target));if(!in_array($target,['esp8266','esp32'],true))throw new \InvalidArgumentException('Unsupported firmware target.');return $target;}
 }
