@@ -21,9 +21,11 @@ final class ReleaseManifestService
     }
     public function status(string $currentVersion,string $target): array
     {
-        $latest=$this->latest($target);$current=ltrim(trim($currentVersion),'vV');
-        if(!$latest)return ['current_version'=>$currentVersion,'latest_version'=>null,'update_available'=>null,'target'=>$target];
-        return ['current_version'=>$currentVersion,'latest_version'=>$latest['version'],'update_available'=>version_compare($latest['version'],$current,'>'),'target'=>$target,'channel'=>$latest['channel'],'url'=>$latest['url'],'sha256'=>$latest['sha256'],'size'=>$latest['size']];
+        $release=$this->latest();$current=ltrim(trim($currentVersion),'vV');
+        if(!$release)return ['current_version'=>$currentVersion,'latest_version'=>null,'update_available'=>null,'target'=>$target];
+        $status=['current_version'=>$currentVersion,'latest_version'=>$release['version'],'update_available'=>version_compare($release['version'],$current,'>'),'target'=>$target,'channel'=>$release['channel']??'stable'];
+        $binary=$this->latest($target);if($binary){$status['url']=$binary['url'];$status['sha256']=$binary['sha256'];$status['size']=$binary['size'];}
+        return $status;
     }
     private function release(): ?array
     {
