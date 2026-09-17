@@ -12,11 +12,27 @@ final class PdoPairingRepository implements PairingRepository
     }
     public function findByToken(string $pairingId,string $pairingToken): ?array
     {
-        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE pairing_id=? LIMIT 1');$stmt->execute([$pairingId]);$row=$stmt->fetch(PDO::FETCH_ASSOC);if(!$row||!password_verify($pairingToken,$row['pairing_token_hash']))return null;return $row;
+        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE pairing_id=? LIMIT 1');$stmt->execute([$pairingId]);$row=$stmt->fetch(PDO::FETCH_ASSOC);if(!$row||!password_verify($pairingToken,$row['pairing_token_hash']))return null;return$row;
     }
     public function findByCode(string $setupCode): ?array
     {
-        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE pairing_code=? AND status NOT IN ("expired","cancelled") AND expires_at>UTC_TIMESTAMP() LIMIT 1');$stmt->execute([$setupCode]);$row=$stmt->fetch(PDO::FETCH_ASSOC);return $row?:null;
+        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE pairing_code=? AND status NOT IN ("expired","cancelled") AND (expires_at>UTC_TIMESTAMP() OR status IN ("claimed","completed")) LIMIT 1');$stmt->execute([$setupCode]);$row=$stmt->fetch(PDO::FETCH_ASSOC);return$row?:null;
+    }
+    public function findById(string $pairingId): ?array
+    {
+        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE pairing_id=? LIMIT 1');$stmt->execute([$pairingId]);$row=$stmt->fetch(PDO::FETCH_ASSOC);return$row?:null;
+    }
+    public function pending(\DateTimeImmutable $now): array
+    {
+        $stmt=$this->pdo->prepare('SELECT * FROM vg_pairings WHERE status="pending" AND expires_at>? ORDER BY created_at');$stmt->execute([$now->format('Y-m-d H:i:s')]);return$stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function deleteExpired(\DateTimeImmutable $now): int
+    {
+        $stmt=$this->pdo->prepare('DELETE FROM vg_pairings WHERE status="pending" AND expires_at<=?');$stmt->execute([$now->format('Y-m-d H:i:s')]);return$stmt->rowCount();
+    }
+    public function delete(string $pairingId): void
+    {
+        $stmt=$this->pdo->prepare('DELETE FROM vg_pairings WHERE pairing_id=?');$stmt->execute([$pairingId]);
     }
     public function claim(string $pairingId,string $claimedBy,array $context,\DateTimeImmutable $at,array $deviceInfo=[]): void
     {
