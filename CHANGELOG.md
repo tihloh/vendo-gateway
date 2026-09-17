@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.0 - 2026-09-17
+## 1.3.2 - 2026-09-17
 
 - pairing lifecycle is owned by Vendo Gateway
 - list pending setup-code enrollments through `PairingService::pending()`
