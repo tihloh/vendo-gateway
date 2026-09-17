@@ -7,6 +7,13 @@ final class FirmwareEndpoint
     public function __construct(private DeviceAuth $auth,private FirmwareService $firmware) {}
     public function check(array $headers,string $rawBody,string $method,string $path): array
     {
-        $device=$this->auth->authenticate($headers,$rawBody,$method,$path);$payload=json_decode($rawBody,true,flags:JSON_THROW_ON_ERROR);return $this->firmware->check((string)($payload['hardware_model']??$device->hardwareModel),(string)($payload['hardware_revision']??$device->hardwareRevision),(string)($payload['channel']??'stable'),(string)($payload['current_version']??$device->firmwareVersion??'0.0.0'));
+        $device=$this->auth->authenticate($headers,$rawBody,$method,$path);$status=$this->firmware->deviceStatus($device->deviceId);
+        $result=['update_available'=>$status['update_available'],'error'=>$status['error']??null];
+        if($status['update_available']===true)$result['firmware']=[
+            'version'=>$status['latest_version'],'url'=>$status['url'],'sha256'=>$status['sha256'],
+            'size_bytes'=>$status['size'],'target'=>$status['target'],'channel'=>$status['channel'],
+            'hardware_model'=>$status['hardware_model'],'hardware_revision'=>$status['hardware_revision'],
+        ];
+        return $result;
     }
 }

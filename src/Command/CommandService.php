@@ -15,7 +15,10 @@ final class CommandService
     }
     public function poll(string $deviceId,int $limit=10): array
     {
-        return $this->commands->pending($deviceId,$limit,$this->clock->now());
+        return array_map(static function(array $command):array{
+            $command['id']=$command['command_id']??$command['id']??'';
+            return $command;
+        },$this->commands->pending($deviceId,$limit,$this->clock->now()));
     }
     public function acknowledge(string $deviceId,string $commandId,string $status,array $result=[]): bool
     {

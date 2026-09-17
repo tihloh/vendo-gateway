@@ -160,3 +160,37 @@ composer test
 ```
 
 License: MIT.
+
+
+## Host-driven OTA management
+
+Firmware releases are built from the private vendogate-firmware source repository
+and published as binaries plus manifest.json in tihloh/vendogate-firmware-releases.
+The host application renders the UI and authorizes its users; the gateway owns
+release fetching, validation, version/target matching, configuration, and commands.
+
+- Call firmware->deviceStatus(deviceId) on a PHP page load. It checks the release
+  catalog using persisted device identity and a shared five-minute cache. No ESP
+  request or command is made, and an offline device can be checked.
+- Call firmware->requestCheck(deviceId) for a manual refresh. Return its status
+  to the frontend immediately; this does not enqueue a firmware.check command.
+- Enable Update only when update_available is strictly true. Null means unknown,
+  incompatible, or incomplete metadata, and error explains why.
+- Call firmware->requestUpdate(deviceId) to queue a firmware.update command with
+  the exact version, target, hardware model/revision, HTTPS URL, size, and SHA-256.
+  Commands expire after 24 hours and run when the enrolled ESP next polls while idle.
+- Call firmware->saveSettings(deviceId, settings) to validate/persist policy and
+  queue config.refresh. Settings: auto_check (default true), auto_update (default
+  false), check_interval_hours (integer 1–24), and channel (stable). Enabling
+  auto_update requires auto_check. These settings control the ESP's own scheduler,
+  independently of page-load/manual release discovery.
+- firmware->settings(deviceId) returns the normalized policy for rendering.
+
+Release metadata is read as a single pinned snapshot. Missing targets, checksum
+mismatches, unknown installed versions, and failed refreshes cannot enable Update.
+Public firmware binaries stay separate from private source; hosts need no GitHub
+source-repository credentials.
+
+Command responses include both command_id and the legacy id alias. Configuration
+responses retain the nested config plus legacy top-level settings. Acknowledgements
+accept explicit status or the older ok boolean, including failure results.

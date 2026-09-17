@@ -11,6 +11,6 @@ final class CommandEndpoint
     }
     public function acknowledge(array $headers,string $rawBody,string $method,string $path,string $commandId): array
     {
-        $device=$this->auth->authenticate($headers,$rawBody,$method,$path);$payload=json_decode($rawBody,true,flags:JSON_THROW_ON_ERROR);$ok=$this->commands->acknowledge($device->deviceId,$commandId,(string)($payload['status']??'acked'),is_array($payload['result']??null)?$payload['result']:[]);return ['ok'=>$ok];
+        $device=$this->auth->authenticate($headers,$rawBody,$method,$path);$payload=json_decode($rawBody,true,flags:JSON_THROW_ON_ERROR);$ok=$this->commands->acknowledge($device->deviceId,$commandId,(string)($payload['status']??(($payload['ok']??true)?'acked':'failed')),is_array($payload['result']??null)?$payload['result']:[]);return ['ok'=>$ok];
     }
 }
