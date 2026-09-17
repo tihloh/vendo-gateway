@@ -34,12 +34,13 @@ final class GatewayFactory
         $devicesRepo=new PdoDeviceRepository($pdo,$protector);
         $commands=new CommandService(new PdoCommandRepository($pdo),$clock);
         $dispatcher=new EventDispatcher();
-        $firmware=new FirmwareService(new PdoFirmwareRepository($pdo),$clock,new ReleaseManifestService(),$devicesRepo,$commands);
+        $configs=new ConfigService(new PdoConfigRepository($pdo),$clock,$devicesRepo);
+        $firmware=new FirmwareService(new PdoFirmwareRepository($pdo),$clock,new ReleaseManifestService(),$devicesRepo,$commands,$configs);
         return new Gateway(
             new PairingService(new PdoPairingRepository($pdo),$devicesRepo,$protector,$clock),
             new DeviceService($devicesRepo,$clock),
             new HeartbeatService($devicesRepo,$clock),
-            new ConfigService(new PdoConfigRepository($pdo),$clock,$devicesRepo),
+            $configs,
             $commands,
             new EventService(new PdoEventRepository($pdo),$dispatcher,$clock),
             $dispatcher,
