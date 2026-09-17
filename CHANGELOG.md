@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 - 2026-09-17
+
+- pairing lifecycle is owned by Vendo Gateway
+- list pending setup-code enrollments through `PairingService::pending()`
+- remove expired unclaimed setup codes through `PairingService::cleanupExpired()`
+- retain completed enrollment until the ESP acknowledges credential delivery
+- delete the pairing record after a successful credential ACK
+- keep ACK retries idempotent after the pairing record is removed
+- include expired pairing cleanup in gateway maintenance
+
 ## 1.0.0 - 2026-09-14
 
 First stable release of the generic Vendo Gateway package:
