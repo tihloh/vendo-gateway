@@ -44,10 +44,10 @@ final class FirmwareTest extends TestCase
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-09-16T00:00:00Z'));
         return $clock;
     }
-    private function gateway(?CommandRepository $commands=null,?ConfigRepository $configs=null,?array $capabilities=null,string $version='1.0.0'): FirmwareService
+    private function gateway(?CommandRepository $commands=null,?ConfigRepository $configs=null,?array $capabilities=null,string $version='1.0.0',?string $hardwareUid=null): FirmwareService
     {
         $devices=$this->createMock(DeviceRepository::class);
-        $devices->method('find')->willReturn(new Device('DEV-test',null,'active','VG-VENDO-01','1',$version,null));
+        $devices->method('find')->willReturn(new Device('DEV-test',$hardwareUid,'active','VG-VENDO-01','1',$version,null));
         $devices->method('capabilities')->willReturn($capabilities??['platform'=>'esp32']);
         $devices->expects(self::never())->method('heartbeat');
         $devices->expects(self::never())->method('secret');
@@ -158,6 +158,18 @@ final class FirmwareTest extends TestCase
         $status=$this->gateway(configs:$configs,capabilities:[])->deviceStatus('DEV-test');
         self::assertTrue($status['update_available']);
         self::assertSame('esp8266',$status['target']);
+    }
+    public function testLegacyDeviceHardwareUidRestoresMissingTarget(): void
+    {
+        $status=$this->gateway(capabilities:[],hardwareUid:'ESP8266-A1B2C3')->deviceStatus('DEV-test');
+        self::assertTrue($status['update_available']);
+        self::assertSame('esp8266',$status['target']);
+    }
+    public function testLegacyTopLevelReportedPlatformRestoresMissingTarget(): void
+    {
+        $configs=$this->createStub(ConfigRepository::class);
+        $configs->method('device')->willReturn(['profile_key'=>null,'config_version'=>1,'config'=>[],'reported_state'=>['platform'=>'esp32']]);
+        self::assertSame('esp32',$this->gateway(configs:$configs,capabilities:[])->deviceStatus('DEV-test')['target']);
     }
     public function testHardwareMismatchCannotEnableUpdate(): void
     {

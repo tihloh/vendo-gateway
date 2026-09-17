@@ -27,7 +27,7 @@ final class FirmwareService
         $device=$this->devices->find($deviceId)??throw new \InvalidArgumentException('Device not found.');
         $caps=$this->devices->capabilities($deviceId);
         $reported=$this->configs?->reportedState($deviceId)??[];
-        $target=$caps['platform']??$reported['hardware']['platform']??null;
+        $target=$caps['platform']??$reported['hardware']['platform']??$reported['platform']??$this->targetFromHardwareUid($device->hardwareUid);
         $settings=$this->settings($deviceId);
         $base=['device_id'=>$deviceId,'current_version'=>$device->firmwareVersion,'latest_version'=>null,'update_available'=>null,'target'=>null,'settings'=>$settings];
         if(!is_string($target)||!in_array(strtolower($target),['esp32','esp8266'],true))return $base+['error'=>'Device firmware target is unknown.'];
@@ -81,6 +81,14 @@ final class FirmwareService
         $this->configs->patchDeviceConfig($deviceId,['firmware'=>$settings]);
         $this->commands->queue($deviceId,'config.refresh',[],86400);
         return $settings;
+    }
+
+    private function targetFromHardwareUid(?string $hardwareUid): ?string
+    {
+        $uid=strtoupper(trim((string)$hardwareUid));
+        if(str_starts_with($uid,'ESP32-'))return 'esp32';
+        if(str_starts_with($uid,'ESP8266-'))return 'esp8266';
+        return null;
     }
 
     private function target(string $target): string{$target=strtolower(trim($target));if(!in_array($target,['esp8266','esp32'],true))throw new \InvalidArgumentException('Unsupported firmware target.');return $target;}
