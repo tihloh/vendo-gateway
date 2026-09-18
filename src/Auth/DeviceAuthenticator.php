@@ -17,6 +17,15 @@ final class DeviceAuthenticator
         private int $allowedClockSkewSeconds=300
     ) {}
 
+    public function authenticateToken(string $deviceId,string $token): Device
+    {
+        $device=$this->devices->find($deviceId);
+        if(!$device||$device->state!=='active'||$token==='')throw new \RuntimeException('Device authentication failed.');
+        $secret=$this->devices->secret($deviceId);
+        if(!$secret||!hash_equals($secret,$token))throw new \RuntimeException('Device authentication failed.');
+        return$device;
+    }
+
     public function authenticate(
         string $deviceId,
         int $timestamp,
