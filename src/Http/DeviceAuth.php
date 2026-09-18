@@ -10,6 +10,10 @@ final readonly class DeviceAuth
     {
         $get=fn(string $name)=>$headers[$name]??$headers[strtolower($name)]??'';
         $device=(string)$get('X-Vendo-Device');
+        $authorization=trim((string)$get('Authorization'));
+        if(preg_match('/^Bearer\s+(.+)$/i',$authorization,$match)){
+            return$this->auth->authenticateToken($device,trim($match[1]));
+        }
         $timestamp=(int)$get('X-Vendo-Timestamp');
         $signature=(string)$get('X-Vendo-Signature');
         $sequence=(string)$get('X-Vendo-Sequence');
