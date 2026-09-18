@@ -8,16 +8,11 @@ final readonly class DeviceAuth
     public function __construct(private DeviceAuthenticator $auth) {}
     public function authenticate(array $headers,string $body,string $method,string $path): Device
     {
-        $get=fn(string $name)=>$headers[$name]??$headers[strtolower($name)]??'';
-        $device=(string)$get('X-Vendo-Device');
-        $timestamp=(int)$get('X-Vendo-Timestamp');
-        $signature=(string)$get('X-Vendo-Signature');
-        $sequence=(string)$get('X-Vendo-Sequence');
-        if($sequence!==''){
-            $payload=json_decode($body,true);
-            $promote=is_array($payload)&&(int)($payload['protocol']??0)>=2;
-            return$this->auth->authenticateSequence($device,$timestamp,$sequence,$signature,$method,$path,$body,$promote);
-        }
-        return$this->auth->authenticate($device,$timestamp,(string)$get('X-Vendo-Nonce'),$signature,$method,$path,$body);
+        $normalized=[];
+        foreach($headers as $name=>$value)$normalized[strtolower((string)$name)]=(string)$value;
+        $device=trim($normalized['x-vendo-device']??'');
+        $authorization=trim($normalized['authorization']??'');
+        if(!preg_match('/^Bearer\s+(.+)$/i',$authorization,$match))throw new \RuntimeException('Device authentication failed.');
+        return$this->auth->authenticate($device,trim($match[1]));
     }
 }
