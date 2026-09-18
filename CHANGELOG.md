@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 - 2026-09-18
+
+- replace timestamp/nonce/sequence HMAC request authentication with per-device bearer tokens
+- remove NTP/clock dependency from device authentication
+- reuse existing registered device secrets as tokens so paired devices do not need re-pairing
+- return `device_token` during pairing credential delivery
+- keep protocol-2 unified sync and event sequence deduplication independent from authentication
+
 ## 1.3.2 - 2026-09-17
 
 - pairing lifecycle is owned by Vendo Gateway
