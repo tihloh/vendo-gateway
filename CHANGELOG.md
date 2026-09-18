@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.0 - 2026-09-18
+
+- add simple per-device bearer-token authentication over HTTPS
+- reuse the existing device secret as the bearer token; no re-pairing or schema change required
+- remove timestamp/NTP, nonce, sequence and HMAC requirements from the preferred device authentication path
+- retain legacy signed-request authentication temporarily for already-flashed devices
+- keep unified sync, event idempotency, command ACKs and OTA behavior unchanged
+
+
 ## 1.3.2 - 2026-09-17
 
 - pairing lifecycle is owned by Vendo Gateway
