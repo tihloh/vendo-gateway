@@ -37,9 +37,7 @@ Authorization: Bearer <device_secret>
 
 Production deployments should use HTTPS. The bearer token is the existing per-device secret; no additional credential or database migration is required.
 
-The bearer-token path intentionally does not require NTP, timestamps, nonces, request sequences, body hashing or HMAC signatures. This allows communication immediately after Wi-Fi connects.
-
-The previous signed-request authentication remains available temporarily for migration of already-flashed devices.
+Authentication intentionally does not require NTP, timestamps, nonces, request sequences, body hashing or HMAC signatures. This allows communication immediately after Wi-Fi connects.
 
 ## Heartbeat
 
