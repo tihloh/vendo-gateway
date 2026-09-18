@@ -43,6 +43,8 @@ $gateway = GatewayFactory::pdo($pdo, $_ENV['VENDO_GATEWAY_MASTER_KEY']);
 
 Use a random application master key of at least 32 characters. Changing it without re-encrypting stored device secrets will invalidate those secrets.
 
+Device capabilities are stored as one JSON document in `vg_devices.capabilities_json`; they are not normalized into a separate capability table.
+
 ## Host API examples
 
 ```php
