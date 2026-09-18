@@ -21,8 +21,8 @@ final class PdoCommandRepository implements CommandRepository
     public function acknowledge(string $deviceId,string $commandId,string $status,array $result,\DateTimeImmutable $at): bool
     {
         if(!in_array($status,['acked','failed'],true)) throw new \InvalidArgumentException('Invalid command acknowledgement status.');
-        $date=$at->format('Y-m-d H:i:s');$stmt=$this->pdo->prepare('UPDATE vg_device_commands SET status=?,result_json=?,acknowledged_at=?,updated_at=? WHERE device_id=? AND command_id=? AND status IN ("pending","delivered")');
-        $stmt->execute([$status,json_encode($result,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$date,$date,$deviceId,$commandId]);return $stmt->rowCount()===1;
+        $stmt=$this->pdo->prepare('DELETE FROM vg_device_commands WHERE device_id=? AND command_id=? AND status IN ("pending","delivered")');
+        $stmt->execute([$deviceId,$commandId]);return$stmt->rowCount()===1;
     }
     public function expire(\DateTimeImmutable $now): int
     {
