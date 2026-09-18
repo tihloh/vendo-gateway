@@ -61,7 +61,6 @@ final class SyncEndpoint
         }
 
         $config=$this->configs->pull($device->deviceId,isset($payload['config_revision'])?(string)$payload['config_revision']:null);
-        $resolved=$this->configs->resolve($device->deviceId);
         if($protocol>=2){
             $limit=max(0,min(1,(int)($payload['max_commands']??0)));
             $response=[
