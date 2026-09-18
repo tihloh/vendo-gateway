@@ -198,15 +198,9 @@ final class FirmwareTest extends TestCase
     {
         $devices=$this->createStub(DeviceRepository::class);
         $devices->method('find')->willReturn(new Device('DEV-test',null,'active','VG-VENDO-01','1','1.0.0',null));
-        $devices->method('secret')->willReturn('test-secret');
-        $nonces=$this->createStub(\Tihloh\VendoGateway\Auth\NonceRepository::class);
-        $nonces->method('consume')->willReturn(true);
-        $sequences=$this->createStub(\Tihloh\VendoGateway\Auth\RequestSequenceRepository::class);
-        $sequences->method('mode')->willReturn('nonce');
-        $clock=$this->clock();$at=$clock->now()->getTimestamp();
-        $auth=new \Tihloh\VendoGateway\Http\DeviceAuth(new \Tihloh\VendoGateway\Auth\DeviceAuthenticator($devices,$nonces,$sequences,$clock));
-        $headers=['X-Vendo-Device'=>'DEV-test','X-Vendo-Timestamp'=>$at,'X-Vendo-Nonce'=>'test-nonce',
-            'X-Vendo-Signature'=>\Tihloh\VendoGateway\Auth\Signature::sign('test-secret','POST',$path,$at,'test-nonce',$raw)];
+        $devices->method('secret')->willReturn('test-token');
+        $auth=new \Tihloh\VendoGateway\Http\DeviceAuth(new \Tihloh\VendoGateway\Auth\DeviceAuthenticator($devices));
+        $headers=['X-Vendo-Device'=>'DEV-test','Authorization'=>'Bearer test-token'];
         return [$auth,$headers];
     }
     public function testLegacyFailureAcknowledgementIsNotMarkedSuccessful(): void
