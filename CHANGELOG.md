@@ -3,7 +3,7 @@
 ## 1.4.0 - 2026-09-18
 
 - add simple per-device bearer-token authentication over HTTPS
-- reuse the existing device secret as the bearer token; no re-pairing or schema change required
+- reuse the existing device secret as the bearer token; no device re-pairing required
 - use bearer-token authentication as the only post-pairing device authentication path
 - remove timestamp/NTP, nonce, request-sequence and HMAC authentication code and schema
 - keep unified sync, event idempotency, command ACKs and OTA behavior unchanged
