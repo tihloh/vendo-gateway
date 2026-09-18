@@ -28,26 +28,18 @@ A non-revoked `hardware_uid` cannot silently register as another device. Re-pair
 
 ## Authentication
 
-All post-pairing device requests include:
+All post-pairing device requests use the permanent device credentials returned by pairing:
 
 ```text
 X-Vendo-Device: DEV-...
-X-Vendo-Timestamp: 1789305000
-X-Vendo-Nonce: random-per-request
-X-Vendo-Signature: hex-hmac-sha256
+Authorization: Bearer <device_secret>
 ```
 
-Canonical input:
+Production deployments should use HTTPS. The bearer token is the existing per-device secret; no additional credential or database migration is required.
 
-```text
-METHOD
-/path
-unix_timestamp
-nonce
-sha256(raw_request_body)
-```
+The bearer-token path intentionally does not require NTP, timestamps, nonces, request sequences, body hashing or HMAC signatures. This allows communication immediately after Wi-Fi connects.
 
-The path is the API path only; exclude scheme, host and query string. The default clock-skew window is 300 seconds. Nonces are single-use within that window.
+The previous signed-request authentication remains available temporarily for migration of already-flashed devices.
 
 ## Heartbeat
 
