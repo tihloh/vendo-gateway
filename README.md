@@ -10,7 +10,6 @@ composer require tihloh/vendo-gateway
 
 - device pairing and registration
 - permanent device identity and bearer-token authentication over HTTPS
-- legacy signed-request authentication during device migration
 - heartbeat and capability reporting
 - remote configuration and device profiles
 - desired/reported state
@@ -118,7 +117,7 @@ X-Vendo-Device: DEV-...
 Authorization: Bearer <device_secret>
 ```
 
-This path has no timestamp, NTP, nonce, request sequence or HMAC requirement, so a device can communicate as soon as Wi-Fi is available. The older signed-request scheme remains accepted temporarily for already-flashed devices during migration.
+This path has no timestamp, NTP, nonce, request sequence or HMAC requirement, so a device can communicate as soon as Wi-Fi is available. Signed-request authentication is no longer accepted.
 
 See [`docs/protocol-v1.md`](docs/protocol-v1.md) for the wire protocol.
 
