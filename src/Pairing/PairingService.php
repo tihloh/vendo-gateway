@@ -34,7 +34,7 @@ final class PairingService
         if($row['status']!=='pending')throw new \RuntimeException('Setup code is already being used.');$existing=$this->devices->findByHardwareUid($uid);if($existing&&$existing->state!=='revoked')throw new \RuntimeException('Hardware UID is already registered; administrative recovery is required.');
         $context=json_decode((string)($row['claimed_context_json']??'{}'),true)?:[];$createdBy=(string)($row['claimed_by']??'system');$now=$this->clock->now();$deviceInfo=['hardware_uid'=>$uid,'hardware_model'=>$info['hardware_model']??null,'hardware_revision'=>$info['hardware_revision']??null,'firmware_version'=>$info['firmware_version']??null,'capabilities'=>$info['capabilities']??[]];
         $this->pairings->claim((string)$row['pairing_id'],$createdBy,$context,$now,$deviceInfo);$id=Random::id('DEV-',10);$secret=Random::token(32);$this->devices->create($id,$uid,$secret,$deviceInfo['hardware_model'],$deviceInfo['hardware_revision'],$deviceInfo['firmware_version']);if($deviceInfo['capabilities'])$this->devices->replaceCapabilities($id,$deviceInfo['capabilities'],$now);$this->pairings->complete((string)$row['pairing_id'],$id,$this->protector->encrypt($secret),$now);
-        return ['status'=>'registered','enrollment_id'=>$row['pairing_id'],'device_id'=>$id,'device_secret'=>$secret,'context'=>$context,'ack_required'=>true];
+        return ['status'=>'registered','enrollment_id'=>$row['pairing_id'],'device_id'=>$id,'device_token'=>$secret,'context'=>$context,'ack_required'=>true];
     }
     public function acknowledge(string $enrollmentId,string $setupCode): array
     {
@@ -42,7 +42,7 @@ final class PairingService
     }
     private function completedEnrollment(array $row,string $uid): array
     {
-        if((string)($row['hardware_uid']??'')!==$uid)throw new \RuntimeException('Setup code has already been used by another device.');$context=json_decode((string)($row['claimed_context_json']??'{}'),true)?:[];if(!$row['issued_device_secret_encrypted'])return['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true,'context'=>$context];return['status'=>'registered','enrollment_id'=>$row['pairing_id'],'device_id'=>$row['device_id'],'device_secret'=>$this->protector->decrypt($row['issued_device_secret_encrypted']),'context'=>$context,'ack_required'=>true];
+        if((string)($row['hardware_uid']??'')!==$uid)throw new \RuntimeException('Setup code has already been used by another device.');$context=json_decode((string)($row['claimed_context_json']??'{}'),true)?:[];if(!$row['issued_device_secret_encrypted'])return['status'=>'registered','device_id'=>$row['device_id'],'credentials_delivered'=>true,'context'=>$context];return['status'=>'registered','enrollment_id'=>$row['pairing_id'],'device_id'=>$row['device_id'],'device_token'=>$this->protector->decrypt($row['issued_device_secret_encrypted']),'context'=>$context,'ack_required'=>true];
     }
     private function normalizeCode(string $code): string{return strtoupper(preg_replace('/[^A-Z0-9]/i','',$code)??'');}
 }
