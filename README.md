@@ -9,8 +9,7 @@ composer require tihloh/vendo-gateway
 ## What the package owns
 
 - device pairing and registration
-- permanent device identity and HMAC authentication
-- replay protection with timestamp + nonce
+- permanent device identity and bearer-token authentication
 - heartbeat and capability reporting
 - remote configuration and device profiles
 - desired/reported state
@@ -46,8 +45,8 @@ Use a random application master key of at least 32 characters. Changing it witho
 ## Host API examples
 
 ```php
-// Claim the short code shown by a device.
-$gateway->pairings->claim('482731', (string)$adminId, ['site_id' => 12]);
+// Create a short setup code for a device.
+$pairing=$gateway->pairings->prepare((string)$adminId,['site_id'=>12]);
 
 // Send generic commands.
 $gateway->commands->queue($deviceId, 'coin.enable');
@@ -106,28 +105,16 @@ POST /vendo/v1/firmware/check
 
 The package provides framework-neutral endpoint classes under `Tihloh\VendoGateway\Http`; your application maps them to its router.
 
-Pairing credential delivery is retry-safe: after an administrator claims a pairing, the device may retrieve `device_id` and `device_secret` repeatedly until it has persisted them and explicitly acknowledges delivery. The server clears the encrypted one-time secret only after `POST /pairings/{id}/ack` succeeds.
+Pairing credential delivery is retry-safe: a host-generated setup code is exchanged for `device_id` and `device_token`. The device may retrieve those credentials again until it has persisted them and explicitly acknowledges delivery. The server clears the encrypted one-time token only after `POST /pairings/{id}/ack` succeeds.
 
-Authenticated requests use:
-
-```text
-X-Vendo-Device
-X-Vendo-Timestamp
-X-Vendo-Nonce
-X-Vendo-Signature
-```
-
-Canonical signature input:
+Post-pairing device requests use:
 
 ```text
-METHOD
-/path
-unix_timestamp
-nonce
-sha256(raw_body)
+X-Vendo-Device: DEV-...
+Authorization: Bearer <device_token>
 ```
 
-`X-Vendo-Signature = HMAC-SHA256(canonical, device_secret)`.
+No timestamp, NTP, nonce, request sequence, or HMAC is required for device authentication. Device traffic should use HTTPS.
 
 See [`docs/protocol-v1.md`](docs/protocol-v1.md) for the wire protocol.
 
