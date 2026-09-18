@@ -7,6 +7,7 @@
 - remove timestamp/NTP, nonce, sequence and HMAC requirements from the preferred device authentication path
 - retain legacy signed-request authentication temporarily for already-flashed devices
 - keep unified sync, event idempotency, command ACKs and OTA behavior unchanged
+- store device capabilities directly in `vg_devices.capabilities_json` and migrate/drop `vg_device_capabilities`
 
 
 ## 1.3.2 - 2026-09-17
