@@ -9,8 +9,8 @@ composer require tihloh/vendo-gateway
 ## What the package owns
 
 - device pairing and registration
-- permanent device identity and HMAC authentication
-- replay protection with timestamp + nonce
+- permanent device identity and bearer-token authentication over HTTPS
+- legacy signed-request authentication during device migration
 - heartbeat and capability reporting
 - remote configuration and device profiles
 - desired/reported state
@@ -46,8 +46,9 @@ Use a random application master key of at least 32 characters. Changing it witho
 ## Host API examples
 
 ```php
-// Claim the short code shown by a device.
-$gateway->pairings->claim('482731', (string)$adminId, ['site_id' => 12]);
+// Create the short setup code that the device enters during first-time setup.
+$pairing=$gateway->pairings->prepare((string)$adminId,['site_id'=>12]);
+$setupCode=$pairing['setup_code'];
 
 // Send generic commands.
 $gateway->commands->queue($deviceId, 'coin.enable');
@@ -108,26 +109,14 @@ The package provides framework-neutral endpoint classes under `Tihloh\VendoGatew
 
 Pairing credential delivery is retry-safe: after an administrator claims a pairing, the device may retrieve `device_id` and `device_secret` repeatedly until it has persisted them and explicitly acknowledges delivery. The server clears the encrypted one-time secret only after `POST /pairings/{id}/ack` succeeds.
 
-Authenticated requests use:
+Post-pairing requests use the device secret directly as a bearer token over HTTPS:
 
 ```text
-X-Vendo-Device
-X-Vendo-Timestamp
-X-Vendo-Nonce
-X-Vendo-Signature
+X-Vendo-Device: DEV-...
+Authorization: Bearer <device_secret>
 ```
 
-Canonical signature input:
-
-```text
-METHOD
-/path
-unix_timestamp
-nonce
-sha256(raw_body)
-```
-
-`X-Vendo-Signature = HMAC-SHA256(canonical, device_secret)`.
+This path has no timestamp, NTP, nonce, request sequence or HMAC requirement, so a device can communicate as soon as Wi-Fi is available. The older signed-request scheme remains accepted temporarily for already-flashed devices during migration.
 
 See [`docs/protocol-v1.md`](docs/protocol-v1.md) for the wire protocol.
 
