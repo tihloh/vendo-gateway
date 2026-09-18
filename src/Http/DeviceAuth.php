@@ -8,6 +8,16 @@ final readonly class DeviceAuth
     public function __construct(private DeviceAuthenticator $auth) {}
     public function authenticate(array $headers,string $body,string $method,string $path): Device
     {
-        $get=fn(string $name)=>$headers[$name]??$headers[strtolower($name)]??'';return $this->auth->authenticate((string)$get('X-Vendo-Device'),(int)$get('X-Vendo-Timestamp'),(string)$get('X-Vendo-Nonce'),(string)$get('X-Vendo-Signature'),$method,$path,$body);
+        $get=fn(string $name)=>$headers[$name]??$headers[strtolower($name)]??'';
+        $device=(string)$get('X-Vendo-Device');
+        $timestamp=(int)$get('X-Vendo-Timestamp');
+        $signature=(string)$get('X-Vendo-Signature');
+        $sequence=(string)$get('X-Vendo-Sequence');
+        if($sequence!==''){
+            $payload=json_decode($body,true);
+            $promote=is_array($payload)&&(int)($payload['protocol']??0)>=2;
+            return$this->auth->authenticateSequence($device,$timestamp,$sequence,$signature,$method,$path,$body,$promote);
+        }
+        return$this->auth->authenticate($device,$timestamp,(string)$get('X-Vendo-Nonce'),$signature,$method,$path,$body);
     }
 }
