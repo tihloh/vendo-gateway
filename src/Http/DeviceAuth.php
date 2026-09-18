@@ -11,17 +11,7 @@ final readonly class DeviceAuth
         $get=fn(string $name)=>$headers[$name]??$headers[strtolower($name)]??'';
         $device=(string)$get('X-Vendo-Device');
         $authorization=trim((string)$get('Authorization'));
-        if(preg_match('/^Bearer\s+(.+)$/i',$authorization,$match)){
-            return$this->auth->authenticateToken($device,trim($match[1]));
-        }
-        $timestamp=(int)$get('X-Vendo-Timestamp');
-        $signature=(string)$get('X-Vendo-Signature');
-        $sequence=(string)$get('X-Vendo-Sequence');
-        if($sequence!==''){
-            $payload=json_decode($body,true);
-            $promote=is_array($payload)&&(int)($payload['protocol']??0)>=2;
-            return$this->auth->authenticateSequence($device,$timestamp,$sequence,$signature,$method,$path,$body,$promote);
-        }
-        return$this->auth->authenticate($device,$timestamp,(string)$get('X-Vendo-Nonce'),$signature,$method,$path,$body);
+        if(!preg_match('/^Bearer\s+(.+)$/i',$authorization,$match))throw new \RuntimeException('Device authentication failed.');
+        return$this->auth->authenticateToken($device,trim($match[1]));
     }
 }
