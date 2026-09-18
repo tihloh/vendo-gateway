@@ -1,7 +1,7 @@
 name: tests
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'review/**']
   pull_request:
 jobs:
   php:

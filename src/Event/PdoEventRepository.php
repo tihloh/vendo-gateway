@@ -20,6 +20,6 @@ final class PdoEventRepository implements EventRepository
     }
     private function map(array $r): DeviceEvent
     {
-        return new DeviceEvent($r['event_id'],$r['device_id'],(int)$r['sequence_no'],$r['type'],json_decode($r['payload_json']?:'{}',true)?:[],$r['occurred_at']?new \DateTimeImmutable($r['occurred_at'],new \DateTimeZone('UTC')):null,new \DateTimeImmutable($r['received_at'],new \DateTimeZone('UTC')));
+        return new DeviceEvent($r['event_id'],$r['device_id'],(string)$r['sequence_no'],$r['type'],json_decode($r['payload_json']?:'{}',true)?:[],$r['occurred_at']?new \DateTimeImmutable($r['occurred_at'],new \DateTimeZone('UTC')):null,new \DateTimeImmutable($r['received_at'],new \DateTimeZone('UTC')));
     }
 }

@@ -4,6 +4,7 @@ namespace Tihloh\VendoGateway;
 use PDO;
 use Tihloh\VendoGateway\Auth\DeviceAuthenticator;
 use Tihloh\VendoGateway\Auth\PdoNonceRepository;
+use Tihloh\VendoGateway\Auth\PdoRequestSequenceRepository;
 use Tihloh\VendoGateway\Command\CommandService;
 use Tihloh\VendoGateway\Command\PdoCommandRepository;
 use Tihloh\VendoGateway\Config\ConfigService;
@@ -52,6 +53,6 @@ final class GatewayFactory
     public static function authenticator(PDO $pdo,string $masterKey,?Clock $clock=null): DeviceAuthenticator
     {
         $clock??=new SystemClock();
-        return new DeviceAuthenticator(new PdoDeviceRepository($pdo,new OpenSslSecretProtector($masterKey)),new PdoNonceRepository($pdo),$clock);
+        return new DeviceAuthenticator(new PdoDeviceRepository($pdo,new OpenSslSecretProtector($masterKey)),new PdoNonceRepository($pdo),new PdoRequestSequenceRepository($pdo),$clock);
     }
 }
