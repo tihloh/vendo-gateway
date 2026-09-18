@@ -203,10 +203,9 @@ final class FirmwareTest extends TestCase
         $nonces->method('consume')->willReturn(true);
         $sequences=$this->createStub(\Tihloh\VendoGateway\Auth\RequestSequenceRepository::class);
         $sequences->method('mode')->willReturn('nonce');
-        $clock=$this->clock();$at=$clock->now()->getTimestamp();
+        $clock=$this->clock();
         $auth=new \Tihloh\VendoGateway\Http\DeviceAuth(new \Tihloh\VendoGateway\Auth\DeviceAuthenticator($devices,$nonces,$sequences,$clock));
-        $headers=['X-Vendo-Device'=>'DEV-test','X-Vendo-Timestamp'=>$at,'X-Vendo-Nonce'=>'test-nonce',
-            'X-Vendo-Signature'=>\Tihloh\VendoGateway\Auth\Signature::sign('test-secret','POST',$path,$at,'test-nonce',$raw)];
+        $headers=['X-Vendo-Device'=>'DEV-test','Authorization'=>'Bearer test-secret'];
         return [$auth,$headers];
     }
     public function testLegacyFailureAcknowledgementIsNotMarkedSuccessful(): void
