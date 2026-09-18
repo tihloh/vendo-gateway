@@ -22,7 +22,10 @@ final class PdoCommandRepository implements CommandRepository
     {
         if(!in_array($status,['acked','failed'],true)) throw new \InvalidArgumentException('Invalid command acknowledgement status.');
         $stmt=$this->pdo->prepare('DELETE FROM vg_device_commands WHERE device_id=? AND command_id=? AND status IN ("pending","delivered")');
-        $stmt->execute([$deviceId,$commandId]);return$stmt->rowCount()===1;
+        $stmt->execute([$deviceId,$commandId]);
+        // ACK is intentionally idempotent. The row may already be gone when a
+        // previous successful response was lost in transit.
+        return true;
     }
     public function expire(\DateTimeImmutable $now): int
     {
