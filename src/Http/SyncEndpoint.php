@@ -62,13 +62,6 @@ final class SyncEndpoint
 
         $config=$this->configs->pull($device->deviceId,isset($payload['config_revision'])?(string)$payload['config_revision']:null);
         $resolved=$this->configs->resolve($device->deviceId);
-        $firmware=$this->firmware->check(
-            $device->hardwareModel??(string)($payload['hardware_model']??''),
-            $device->hardwareRevision??($payload['hardware_revision']??null),
-            (string)($payload['firmware_channel']??$resolved['firmware_channel']??'stable'),
-            (string)($payload['firmware_version']??$device->firmwareVersion??'0.0.0')
-        );
-
         if($protocol>=2){
             $limit=max(0,min(1,(int)($payload['max_commands']??0)));
             $response=[
@@ -76,7 +69,7 @@ final class SyncEndpoint
                 'config'=>$config,
                 'desired_state'=>$this->states->desired($device->deviceId),
                 'commands'=>$limit?$this->commands->poll($device->deviceId,$limit):[],
-                'firmware'=>$firmware,
+                'firmware'=>null,
                 'accepted_event_ids'=>array_values(array_filter($acceptedEvents,static fn(string $id):bool=>$id!=='')),
                 'accepted_command_ack_ids'=>$acceptedAcks,
                 'server_time'=>time()
@@ -88,7 +81,7 @@ final class SyncEndpoint
             'config'=>$config,
             'desired_state'=>$this->states->desired($device->deviceId),
             'commands'=>$this->commands->poll($device->deviceId,(int)($payload['command_limit']??10)),
-            'firmware'=>$firmware,
+            'firmware'=>null,
             'server_time'=>time()
         ];
     }
