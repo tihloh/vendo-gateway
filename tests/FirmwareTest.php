@@ -199,12 +199,7 @@ final class FirmwareTest extends TestCase
         $devices=$this->createStub(DeviceRepository::class);
         $devices->method('find')->willReturn(new Device('DEV-test',null,'active','VG-VENDO-01','1','1.0.0',null));
         $devices->method('secret')->willReturn('test-secret');
-        $nonces=$this->createStub(\Tihloh\VendoGateway\Auth\NonceRepository::class);
-        $nonces->method('consume')->willReturn(true);
-        $sequences=$this->createStub(\Tihloh\VendoGateway\Auth\RequestSequenceRepository::class);
-        $sequences->method('mode')->willReturn('nonce');
-        $clock=$this->clock();
-        $auth=new \Tihloh\VendoGateway\Http\DeviceAuth(new \Tihloh\VendoGateway\Auth\DeviceAuthenticator($devices,$nonces,$sequences,$clock));
+        $auth=new \Tihloh\VendoGateway\Http\DeviceAuth(new \Tihloh\VendoGateway\Auth\DeviceAuthenticator($devices));
         $headers=['X-Vendo-Device'=>'DEV-test','Authorization'=>'Bearer test-secret'];
         return [$auth,$headers];
     }
