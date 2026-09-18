@@ -6,7 +6,7 @@ final readonly class DeviceEvent
     public function __construct(
         public string $eventId,
         public string $deviceId,
-        public int $sequence,
+        public string $sequence,
         public string $type,
         public array $payload,
         public ?\DateTimeImmutable $occurredAt,
