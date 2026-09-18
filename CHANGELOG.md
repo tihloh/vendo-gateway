@@ -4,8 +4,8 @@
 
 - add simple per-device bearer-token authentication over HTTPS
 - reuse the existing device secret as the bearer token; no re-pairing or schema change required
-- remove timestamp/NTP, nonce, sequence and HMAC requirements from the preferred device authentication path
-- retain legacy signed-request authentication temporarily for already-flashed devices
+- use bearer-token authentication as the only post-pairing device authentication path
+- remove timestamp/NTP, nonce, request-sequence and HMAC authentication code and schema
 - keep unified sync, event idempotency, command ACKs and OTA behavior unchanged
 - store device capabilities directly in `vg_devices.capabilities_json` and migrate/drop `vg_device_capabilities`
 
